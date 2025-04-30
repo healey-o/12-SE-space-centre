@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<div class="space-y-8">
+
+    <h2>Welcome</h2>
+    <section>
+        <p>Location:</p>
+        <div id="map" class="h-64 w-full rounded shadow"></div>
+        <p>Selected Location: <span x-text="latitude + ', ' + longitude"></span></p>
+    </section>
+
+    <section>
+        <h2 class="text-xl font-semibold mb-4">Upcoming Launches</h2>
+        <div hx-get="/api/next-launch" hx-trigger="load" hx-target="#launch-card" class="bg-gray-800 p-4 rounded shadow">
+            <div id="launch-card">Loading launches...</div>
+        </div>  
+    </section>
+
+    <section x-data="{ showSky: false, skyTime: '', latitude: '', longitude: '' }">
+        <h2 class="text-xl font-semibold mb-4">Your Sky</h2>
+        <p>Time:</p>
+        <input type="datetime-local" x-model="skyTime" class="bg-gray-700 text-white p-2 rounded" placeholder="Select time" />
+        <input type="button" value="Now" @click="skyTime = new Date().toISOString().slice(0, 16)" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded" />
+
+        <button @click="showSky = !showSky" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded">
+            Toggle Sky Map
+        </button>
+
+        <div x-show="showSky" x-transition class="mt-4 bg-gray-800 p-4 rounded">
+            <p>insert sky map here</p>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    // Initialize the map
+    document.addEventListener('DOMContentLoaded', () => {
+        const map = L.map('map').setView([51.505, -0.09], 13); // Default to London
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        let marker;
+
+        map.on('click', function (e) {
+            const { lat, lng } = e.latlng;
+            if (marker) {
+                marker.setLatLng(e.latlng);
+            } else {
+                marker = L.marker(e.latlng).addTo(map);
+            }
+            Alpine.store('location', { latitude: lat, longitude: lng });
+        });
+    });
+
+    // Alpine.js store for location
+    document.addEventListener('alpine:init', () => {
+        Alpine.store('location', {
+            latitude: '',
+            longitude: '',
+        });
+    });
+</script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+{% endblock %}

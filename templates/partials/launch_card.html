@@ -1,0 +1,6 @@
+{% for launch in launches %}
+    <div class="bg-gray-800 p-4 rounded shadow mb-4">
+        <h3 class="text-lg font-bold">{{ launch.name }}</h3>
+        <p>{{ launch.net }} - {{ launch.pad.location.name }}</p>
+    </div>
+{% endfor %}
