@@ -9,8 +9,6 @@
     <h2>Welcome</h2>
     <section>
         <p>Location:</p>
-        <div id="map" class="h-64 w-full rounded shadow"></div>
-        <p>Selected Location: <span x-text="latitude + ', ' + longitude"></span></p>
     </section>
 
     <section>
@@ -36,37 +34,6 @@
     </section>
 
 </div>
-
-<script>
-    // Initialize the map
-    document.addEventListener('DOMContentLoaded', () => {
-        const map = L.map('map').setView([51.505, -0.09], 13); // Default to London
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-        }).addTo(map);
-
-        let marker;
-
-        map.on('click', function (e) {
-            const { lat, lng } = e.latlng;
-            if (marker) {
-                marker.setLatLng(e.latlng);
-            } else {
-                marker = L.marker(e.latlng).addTo(map);
-            }
-            Alpine.store('location', { latitude: lat, longitude: lng });
-        });
-    });
-
-    // Alpine.js store for location
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('location', {
-            latitude: '',
-            longitude: '',
-        });
-    });
-</script>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>

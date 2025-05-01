@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block title %}{launch.name}{% endblock %}
+
+{% block content %}
+<div class="space-y-8"></div>
+<div class="bg-gray-800 p-4 rounded shadow mb-4">
+    <h3 class="text-lg font-bold">{{ launch.name }}</h3>
+    <p>{{ launch.net }} - {{ launch.pad.location.name }}</p>
+    <p>Service Provider: {{ launch.launch_service_provider.name }}</p>
+    <p>Rocket: {{ launch.rocket.configuration.name }}</p>
+    <p>Mission: {{ launch.mission.name }}</p>
+    <p>Launch Status: {{ launch.status.name }}</p>
+    <p>Details: {{ launch.status.description }}</p>
+    <p>Launch Pad: {{ launch.pad.name }}</p>
+    <img src="{{ launch.image.image_url }}" alt="Launch Image" class="w-full h-auto rounded shadow mb-4" />
+</div>
+{% endblock %}
