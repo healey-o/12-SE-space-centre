@@ -18,6 +18,13 @@
         </div>  
     </section>
 
+    <section>
+        <h2 class="text-xl font-semibold mb-4">News</h2>
+        <div hx-get="/api/news" hx-trigger="load" hx-target="#news-card" class="bg-gray-800 p-4 rounded shadow">
+            <div id="news-card">Loading news...</div>
+        </div>  
+    </section>
+
     <section x-data="{ showSky: false, skyTime: '', latitude: '', longitude: '' }">
         <h2 class="text-xl font-semibold mb-4">Your Sky</h2>
         <p>Time:</p>

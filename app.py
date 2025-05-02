@@ -26,6 +26,13 @@ def next_launch():
     
     return render_template("partials/launch_card.html", launches=launches, success=success)
 
+#API call for 5 recent news articles
+@app.route("/api/news")
+def news():
+    news, success = get_news()
+
+    return render_template("partials/news_card.html", news=news, success=success)
+
 #More information about a specific launch
 @app.route("/launch/<launch_id>")
 def launch_details(launch_id):
@@ -39,32 +46,68 @@ def get_launches(quantity:int=5):
     launches = cache.get("launches")
     if launches == None:
         # Fetch from API if not cached
-        launch_response = requests.get(f"https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit={quantity}")
-        if launch_response.ok:
-            launches = launch_response.json()["results"]
-            for launch in launches:
-                cache.set(f"launch_{launch['id']}", launch)
-            success = True
+        try:
+            launch_response = requests.get(f"https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit={quantity}")
+            if launch_response.ok:
+                launches = launch_response.json()["results"]
+                launches = {launch['id']: launch for launch in launches}
+                cache.set("launches", launches)
+                success = True
+        except requests.exceptions.SSLError: #Catch errors due to school network not liking me
+            success = False
+        
     else:
         success = True
+
+    if launches != None:
+        launches = [launches[launch_id] for launch_id in launches]
     
     return launches, success
 
 def get_launch_details(launch_id:int):
     success = False
     #Prevent too many API calls from being sent using caching
-    launch = cache.get(f"launch_{launch_id}")
-    if not launch:
+    launches = cache.get("launches")
+    if not launch_id in launches.keys():
         # Fetch from API if not cached
-        launch_response = requests.get(f"https://ll.thespacedevs.com/2.3.0/launches/{launch_id}/")
-        if launch_response.ok:
-            launch = launch_response.json()
-            cache.set(f"launch_{launch_id}", launch)  # Cache the launch details
-            success = True
+        try:
+            launch_response = requests.get(f"https://ll.thespacedevs.com/2.3.0/launches/{launch_id}/")
+            if launch_response.ok:
+                launch = launch_response.json()
+                launches = cache.get("launches")
+                launches[launch['id']] = launch  # Update the cached launches with the new launch details
+                cache.set("launches", launches)
+                success = True
+        except requests.exceptions.SSLError:
+            success = False
     else:
+        launch = launches[launch_id]
         success = True
 
     return launch, success
+
+def get_news(quantity:int=5):
+    success = False
+    #Prevent too many API calls from being sent using caching
+    news = cache.get("news")
+    if news == None:
+        # Fetch from API if not cached
+        try:
+            news_response = requests.get(f"https://api.spaceflightnewsapi.net/v4/articles/?limit={quantity}")
+            if news_response.ok:
+                news = news_response.json()["results"]
+                news = {article['id']: article for article in news}
+                cache.set("news", news)
+                success = True
+        except requests.exceptions.SSLError:
+            success = False
+    else:
+        success = True
+    
+    if news != None:
+        news = [news[article_id] for article_id in news]
+    
+    return news, success
 
 if __name__ == "__main__":
     app.run(debug=True)

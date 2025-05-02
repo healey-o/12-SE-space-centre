@@ -1,0 +1,19 @@
+{% if success == false %}
+    <div class="bg-red-500 text-white p-4 rounded shadow mb-4">
+        <p>News could not be accessed at this time. Please try again later.</p>
+    </div>
+{% else %}
+    {% for article in news %}
+    <a href="{{ article.url }}" class="block"> <!-- Security - Need to make sure links aren't dodgy -->
+        <div class="bg-gray-800 p-4 rounded shadow mb-4">
+            <h3 class="text-lg font-bold">{{ article.title }}</h3>
+            <p>Author: {% for author in article.authors %}
+                            {{ author.name }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+            </p>
+            <p>{{ article.summary }}</p>
+            <p>Published: {{ article.published_at[:10] }}</p>
+        </div>
+    </a>
+    {% endfor %}
+{% endif %}

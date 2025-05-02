@@ -3,9 +3,10 @@
     <head>
         <meta charset="UTF-8">
         <title>The Space Centre: {% block title %}{% endblock %}</title>
-        <script src="https://cdn.tailwindcss.com"></script> <!-- Scripts need to be downloaded before final release -->
+        <script src="https://cdn.tailwindcss.com"></script> <!-- Scripts need to be downloaded before final release, not just implemented as it is not yet certain exactly what needs to be installed -->
         <script src="https://unpkg.com/alpinejs" defer></script>
         <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+        <!-- CSP currently not here, will need to be added after the above scripts are downloaded -->
     </head>
 
     <body class="bg-gradient-to-t from-blue-900 via-black to-gray-900 text-white font-sans min-h-screen flex flex-col">
