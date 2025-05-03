@@ -1,0 +1,10 @@
+{% for planet in planets %}
+<a href="/planet/{{ planet }}" class="block">
+    <div class="bg-light p-4 rounded shadow mb-4 planets-item">
+        <h3 class="text-lg font-bold">{{ planet }}</h3>
+        <p>Alt: {{ planets[planet].altitude }}</p>
+        <p>Angle: {{ planets[planet].azimuth }}</p>
+        <p>Dist: {{ planets[planet].distance }}</p>
+    </div>
+</a>
+{% endfor %}

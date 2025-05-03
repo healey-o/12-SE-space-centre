@@ -1,0 +1,38 @@
+@import url("https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css");
+
+:root {
+
+    --background-colour-light: #2a4065;
+    --text-colour: #fbfffe;
+    --accent-colour-cool: #5c95ff;
+    --accent-colour-warm: #fa8334;
+    --warning-colour: #975866;
+
+
+}
+
+::-webkit-scrollbar {
+    background: none;
+}
+
+.launch-item {
+    background-color: var(--background-colour);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.news-item {
+    background-color: var(--background-colour);
+}
+
+.bg-light {
+    background-color: var(--background-colour-light) !important;
+}
+
+.bg-warn {
+    background-color: var(--warning-colour) !important;
+}
