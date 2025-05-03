@@ -20,7 +20,27 @@ app.secret_key = str(uuid.uuid4())
 #Dashboard
 @app.route("/")
 def home():
-    return render_template("index.html")
+    flaskSession['location'] = None
+    flaskSession['time'] = datetime.now()
+    formatted_time = flaskSession['time'].strftime("%I:%M %p, %A %d %B %Y")
+    return render_template("index.html", location=flaskSession['location'], time=formatted_time)
+
+#Signup/login pages
+@app.route("/signup", methods=["GET"])
+def signup():
+    return render_template("signup.html")
+
+@app.route("/login", methods=["GET"])
+def login():
+    return render_template("login.html")
+
+
+
+#Choose location from a map, or use current location
+@app.route("/set-location", methods=["GET"])
+def location_menu():
+    return render_template("set_location.html")
+    
 
 #API call for the next 5 rocket launches
 @app.route("/api/next-launch", methods=["GET"])
@@ -88,6 +108,8 @@ def get_launches(quantity:int=5):
     #Prevent too many API calls from being sent using caching
     launches = cache.get("launches")
     if launches == None:
+        launches = {}
+    if len(launches) < quantity:
         # Fetch from API if not cached
         try:
             launch_response = requests.get(f"https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit={quantity}")

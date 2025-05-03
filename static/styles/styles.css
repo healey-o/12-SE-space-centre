@@ -4,9 +4,12 @@
 
     --background-colour-light: #2a4065;
     --text-colour: #fbfffe;
+    --text-secondary-colour: #c5d7ff;
+    --paragraph-colour: #4d8df3;
     --accent-colour-cool: #5c95ff;
     --accent-colour-warm: #fa8334;
     --warning-colour: #975866;
+    --border-colour: #3c3d45;
 
 
 }
@@ -15,18 +18,57 @@
     background: none;
 }
 
+body {
+    color: var(--text-colour);
+}
+
 .launch-item {
     background-color: var(--background-colour);
+    color: var(--paragraph-colour);
     border-radius: 0.5rem;
     padding: 0.5rem;
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.launch-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .news-item {
     background-color: var(--background-colour);
+    color: var(--paragraph-colour);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.news-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.planets-item {
+    background-color: var(--background-colour);
+    color: var(--paragraph-colour);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.planets-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+h3 {
+    color: var(--text-secondary-colour);
 }
 
 .bg-light {
@@ -35,4 +77,37 @@
 
 .bg-warn {
     background-color: var(--warning-colour) !important;
+}
+
+.layout-header {
+    height: 60px;
+}
+
+.layout-content {
+    max-height: calc(100vh - 60px);
+    color: var(--text-colour);
+}
+
+hr {
+    border: 1px solid var(--background-colour-light);
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.side-menu {
+    color: var(--text-secondary-colour);
+    padding: 12px;
+    width: 10%;
+    max-height: calc(100vh - 60px);
+    position: fixed;
+    left: 0;
+    border-top: var(--border-colour) 1px solid;
+    border-right: var(--border-colour) 1px solid;
+    border-bottom: var(--border-colour) 1px solid;
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.has-border {
+    border: var(--border-colour) 1px solid;
+    border-radius: 0.5rem;
 }

@@ -4,34 +4,73 @@
 
 {% block content %}
 
-<div class="space-y-8">
+<!-- Side Menu -->
+<nav class="side-menu">
+    <ul class="space-y-4">
+        <li><a href="#welcome" class="text-blue-400 hover:underline">Welcome</a></li>
+        <li><a href="#upcoming-launches" class="text-blue-400 hover:underline">Upcoming Launches</a></li>
+        <li><a href="#your-sky" class="text-blue-400 hover:underline">Your Sky</a></li>
+        <li><a href="#news" class="text-blue-400 hover:underline">News</a></li>
+    </ul>
+</nav>
 
-    <h2 class="text-3xl font-bold">Welcome to The Space Centre</h2>
-    <section class="p-4 bg-gray-800 rounded shadow-lg">
-        <p class="text-lg">Location:  Time:</p>
-    </section>
+<!-- Main Content -->
+<div class="border has-border p-4 shadow-lg">
+    <div class="ml-[20%] w-[80%] p-8 space-y-8">
+        <section id="welcome">
+            <h2 class="text-3xl font-bold">Welcome to The Space Centre</h2>
+            <br/>
+            <div class="p-4 bg-gray-800 rounded shadow-lg">
+                {% if location %}
+                    <p class="text-lg">Location: {{ location }}</p>
+                {% else %}
+                    <p class="text-lg">Location not set.</p>
+                {% endif %}
+                <p class="text-lg">{{ time }}</p>
+                <hr/>
+                <a href="/set-location" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200 inline-block text-center">Set Location</a>
+            </div>
+        </section>
 
-    <section>
-        <h2 class="text-2xl font-semibold mb-4">Upcoming Launches</h2>
-        <div hx-get="/api/next-launch" hx-trigger="load" hx-target="#launch-card" class="bg-gray-800 p-4 rounded shadow-lg">
-            <div id="launch-card" class="text-center text-blue-400">Loading launches...</div>
-        </div>  
-    </section>
+        <section id="upcoming-launches">
+            <h2 class="text-2xl font-semibold mb-4">Upcoming Launches</h2>
+            <div hx-get="/api/next-launch" hx-trigger="load" hx-target="#launch-card" class="bg-gray-800 p-4 rounded shadow-lg">
+                <div id="launch-card" class="text-center">
+                    <a class="block">
+                        {% for i in range(5) %}
+                        <div class="bg-light p-4 rounded shadow mb-4 launch-item animate-pulse"><h3 class="text-lg font-bold">Loading...</h3></div>
+                        {% endfor %}
+                    </a>
+                </div>
+            </div>  
+        </section>
 
-    <section>
-        <h2 class="text-2xl font-semibold mb-4">Your Sky</h2>
-        <div hx-get="api/planets" hx-trigger="load" hx-target="#planets-card" class="bg-gray-800 p-4 rounded shadow-lg">
-            <div id="planets-card" class="text-center text-blue-400">Loading planets...</div>
-        </div>
-    </section>
+        <section id="your-sky">
+            <h2 class="text-2xl font-semibold mb-4">Your Sky</h2>
+            <div hx-get="api/planets" hx-trigger="load" hx-target="#planets-card" class="bg-gray-800 p-4 rounded shadow-lg">
+                <div id="planets-card" class="text-center">
+                    <a class="block">
+                        {% for i in range(3) %}
+                            <div role="status" class="bg-light p-4 rounded shadow mb-4 planets-item animate-pulse"><h3 class="text-lg font-bold">Loading...</h3></div>
+                        {% endfor %}
+                    </a>
+                </div>
+            </div>
+        </section>
 
-    <section>
-        <h2 class="text-2xl font-semibold mb-4">News</h2>
-        <div hx-get="/api/news" hx-trigger="load" hx-target="#news-card" class="bg-gray-800 p-4 rounded shadow-lg">
-            <div id="news-card" class="text-center text-blue-400">Loading news...</div>
-        </div>  
-    </section>
-
+        <section id="news">
+            <h2 class="text-2xl font-semibold mb-4">News</h2>
+            <div hx-get="/api/news" hx-trigger="load" hx-target="#news-card" class="bg-gray-800 p-4 rounded shadow-lg">
+                <div id="news-card" class="text-center">
+                    <a class="block">
+                        {% for i in range(5) %}
+                            <div class="bg-light p-4 rounded shadow mb-4 news-item animate-pulse"><h3 class="text-lg font-bold">Loading...</h3></div>
+                        {% endfor %}
+                    </a>
+                </div>
+            </div>  
+        </section>
+    </div>
 </div>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
