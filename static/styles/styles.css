@@ -71,6 +71,14 @@ h3 {
     color: var(--text-secondary-colour);
 }
 
+.text-primary {
+    color: var(--text-colour) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary-colour) !important;
+}
+
 .bg-light {
     background-color: var(--background-colour-light) !important;
 }
@@ -110,4 +118,25 @@ hr {
 .has-border {
     border: var(--border-colour) 1px solid;
     border-radius: 0.5rem;
+}
+
+.textbox {
+    width: 100%;
+    height: 34px;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.form-box {
+    padding: 20px;
+    justify-self: center;
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.centre-h {
+    min-height: calc(100vh - 120px);
 }

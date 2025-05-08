@@ -30,9 +30,18 @@ def home():
 def signup():
     return render_template("signup.html")
 
+@app.route("/signup", methods=["POST"])
+def sibmitSignup():
+    pass
+
+
 @app.route("/login", methods=["GET"])
 def login():
     return render_template("login.html")
+
+@app.route("/login", methods=["POST"])
+def submitLogin():
+    pass
 
 
 
