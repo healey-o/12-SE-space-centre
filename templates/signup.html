@@ -8,28 +8,72 @@
     <div class="space-y-8 has-border form-box">
         <h1 class="text-4xl font-bold text-center text-primary">Welcome!</h1>
         <h2 class="text-2xl font-bold">Sign Up</h2>
-        <form action="/signup" method="POST" class="bg-gray-800 p-4 rounded shadow-lg space-y-4">
+        <form action="/signup" method="POST" class="bg-gray-800 p-4 rounded shadow-lg space-y-4" x-data="{ password: '', strength: 0, feedback: '', getColor() { 
+                    const red = Math.max(255 - (this.strength * 2.55), 0);
+                    const green = Math.min(this.strength * 2.55, 255);
+                    return `rgb(${red}, ${green}, 0)`; 
+            } }" @input="updateStrength">
             <div>
                 <label for="username" class="block text-sm font-medium text-gray-300">Username</label>
                 <input type="text" name="username" id="username" required class="textbox focus:outline-none focus:ring focus:ring-blue-500">
             </div>
+            {% if "username_taken" in errors %}
+                <p class="help is-danger">Username is already taken.</p>
+            {% endif %}
+            {% if "username_length" in errors %}
+                <p class="help is-danger">Username cannot be more than 50 characters long.</p>
+            {% endif %}
             
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
-                <input type="password" name="password" id="password" required class="textbox focus:outline-none focus:ring focus:ring-blue-500">
+                <input type="password" name="password" id="password" required class="textbox focus:outline-none focus:ring focus:ring-blue-500" x-model="password">
+            </div>
+            <svg id="password-strength" width="100" height="20" viewBox="0 0 100 3" style="width:100%">
+                <rect x="0" y="0" width="100" height="100" fill="#2a4065" />
+                <text x="5" y="15" class="text-sm text-gray-400" x-text="'Strength: ' + strength"></text>
+                <rect id="strength-bar" x="0.5" y="0.5" :width="strength" height="2" :fill="getColor()" />
+            </svg>
+
+            {% if 'password_security' in errors %}
+                <p class="help is-danger">{{ password_feedback }}</p>
+            {% endif %}
+
+            <br/>
+
+            <div>
+                <label for="confirm-password" class="block text-sm font-medium text-gray-300">Confirm Password</label>
+                <input type="password" name="confirm-password" id="confirm-password" required class="textbox focus:outline-none focus:ring focus:ring-blue-500">
             </div>
 
             <div class="flex justify-center">
                 <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200">Sign Up</button>
             </div>
-            {% if failed_attempt %}
-                    <div class="bg-warn">
-                        <p>Invalid login details.</p>
-                    </div>
+            {% if "match_password" in errors %}
+                <p class="help is-danger">Passwords do not match.</p>
+            {% endif %}
+            
+            <br>
+            {% if "empty_field" in errors %}
+                <p class="help is-danger">Please fill in all fields.</p>
+                <br>
             {% endif %}
         </form>
         <p class="text-sm text-gray-400">Already have an account? <a href="/login" class="text-blue-400 hover:underline">Log In</a></p>
     </div>
 </div>
+
+<script>
+    function updateStrength() {
+        fetch('/password-strength', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: this.password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.strength = data.score;
+        });
+    }
+</script>
 
 {% endblock %}

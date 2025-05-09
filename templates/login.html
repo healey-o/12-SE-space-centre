@@ -11,12 +11,12 @@
         <form action="/login" method="POST" class="bg-gray-800 p-4 rounded shadow-lg space-y-4">
             <div>
                 <label for="username" class="block text-sm font-medium text-gray-300">Username</label>
-                <input type="text" name="username" id="username" required class="textbox focus:outline-none focus:ring focus:ring-blue-500">
+                <input type="text" name="username" id="username" required class="textbox focus:outline-none focus:ring focus:ring-blue-500" value="{{ usernameFailed }}">
             </div>
             
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
-                <input type="password" name="password" id="password" required class="textbox focus:outline-none focus:ring focus:ring-blue-500">
+                <input type="password" name="password" id="password" required class="textbox focus:outline-none focus:ring focus:ring-blue-500" value="{{ passwordFailed }}">
             </div>
             
             <div class="flex justify-center">

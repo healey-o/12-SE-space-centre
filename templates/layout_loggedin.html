@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>The Space Centre: {% block title %}{% endblock %}</title>
+        <script src="https://unpkg.com/alpinejs" defer></script>
+        <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+        <link rel="stylesheet" href= "{{ url_for('static',filename='styles/styles.css') }}">
+        <!-- CSP currently not here, will need to be added after the above scripts are downloaded -->
+    </head>
+
+    <body class="bg-gradient-to-t from-blue-900 via-black to-gray-900 font-sans min-h-screen flex flex-col">
+        <header class="bg-gray-900 p-4 shadow layout-header">
+            <div class="mx-auto flex items-center h-full justify-between">
+                <a href="/" class="text-2xl font-bold text-left flex-shrink-0">The Space Centre</a>
+                <nav class="flex items-center space-x-4 text-right ml-auto">
+                    <span>Welcome, {{ username }}!</span>
+                    <a href="/logout" class="hover:underline">Log Out</a>
+                </nav>
+            </div>
+        </header>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="container mx-auto p-4">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} bg-{{ category }}-500 p-2 rounded mb-2">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+        <main class="container mx-auto p-4 flex-1 overflow-y-auto layout-content">
+            {% block content %}{% endblock %}
+        </main>
+    </body>
+</html>

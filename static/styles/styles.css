@@ -126,6 +126,8 @@ hr {
     padding: 0.5rem;
     border-radius: 0.5rem;
     margin: 0.5rem 0;
+    background-color: var(--background-colour-light);
+    color: var(--text-colour);
 }
 
 .form-box {

@@ -1,4 +1,8 @@
-{% extends "layout.html" %}
+{% if loggedIn %}
+    {% extends "layout_loggedin.html" %}
+{% else %}
+    {% extends "layout.html" %}
+{% endif %}
 
 {% block title %}{launch.name}{% endblock %}
 

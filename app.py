@@ -1,11 +1,15 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_caching import Cache
 from flask import session as flaskSession
 import requests
 import uuid
 from skyfield.api import load, Topos, load_constellation_map, Star, load_constellation_names
 from datetime import datetime, timezone
-
+from passwordchecker import PasswordChecker
+from setup_db import User
+from werkzeug.security import generate_password_hash
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
 
@@ -17,13 +21,24 @@ cache = Cache(app)
 #Secret key for session management
 app.secret_key = str(uuid.uuid4())
 
+#Database setup
+engine = create_engine('sqlite:///userdata.db')
+Session = sessionmaker(bind=engine)
+sessionDb = Session()
+
 #Dashboard
 @app.route("/")
 def home():
     flaskSession['location'] = None
     flaskSession['time'] = datetime.now()
     formatted_time = flaskSession['time'].strftime("%I:%M %p, %A %d %B %Y")
-    return render_template("index.html", location=flaskSession['location'], time=formatted_time)
+
+    loggedIn = False
+    userId = flaskSession.get('userId')
+    if userId:
+        loggedIn = True
+
+    return render_template("index.html", location=flaskSession['location'], time=formatted_time, loggedIn=loggedIn, username=flaskSession.get('username'))
 
 #Signup/login pages
 @app.route("/signup", methods=["GET"])
@@ -32,7 +47,45 @@ def signup():
 
 @app.route("/signup", methods=["POST"])
 def sibmitSignup():
-    pass
+    # Get the form data
+    username = request.form['username']
+    password = request.form['password']
+    password_confirm = request.form['confirm-password']
+    errors = []
+
+    # Check for errors in the form data
+    if username == '' or password == '' or password_confirm == '':
+        errors.append('empty_field')
+    elif len(password) < 8:
+        errors.append('password_length')
+    
+    if password != password_confirm:
+        errors.append('match_password')
+    
+    feedback = scorePassword(password)
+    print(feedback)
+    if feedback[0] < 60:
+        errors.append('password_security')
+
+
+    users = sessionDb.query(User).filter(User.username == username).all()
+    if len(users) > 0:
+        errors.append('username_taken')
+
+    
+
+    if len(errors) > 0:
+        return render_template('signup.html', errors=errors, password_feedback=feedback[1], password_score=feedback[0])
+    else:
+        unique_id = str(uuid.uuid4())#gives each user a unique uuid
+
+        user = User(id=unique_id, username=username, password=generate_password_hash(password))
+        sessionDb.add(user)
+        sessionDb.commit()
+        
+        flaskSession['userId'] = user.id
+        flaskSession['username'] = user.username
+        return redirect(url_for('home'))
 
 
 @app.route("/login", methods=["GET"])
@@ -41,8 +94,30 @@ def login():
 
 @app.route("/login", methods=["POST"])
 def submitLogin():
-    pass
+    # Get the form data
+    username = request.form['username']
+    password = request.form['password']
 
+    # Check if the form data is empty
+    if username == '' or password == '':
+        #usernameFailed and passwordFailed are used to keep the form data in the input fields between failed login attempts
+        return render_template("login.html",failed_attempt=True,usernameFailed=username,passwordFailed=password)
+
+    # Check if the user exists
+    user = sessionDb.query(User).filter(User.username == username).first()
+    if user and user.check_password(password):
+        # Set the session variables
+        flaskSession['userId'] = user.id
+        flaskSession['username'] = user.username
+        return redirect(url_for('home'))
+    else:
+        return render_template("login.html",failed_attempt=True,usernameFailed=username,passwordFailed=password)
+
+
+@app.route("/logout", methods=["GET"])
+def logout():
+    flaskSession.clear()  # Clear the session data
+    return redirect(url_for('home'))
 
 
 #Choose location from a map, or use current location
@@ -184,6 +259,30 @@ def get_news(quantity:int=5):
         news = [news[article_id] for article_id in news]
     
     return news, success
+
+# Utility route for password strength
+@app.route("/password-strength", methods=["POST"])
+def password_strength():
+    data = request.json
+    password = data.get("password", "")
+    score, feedback = scorePassword(password)
+    return jsonify({"score": score, "feedback": feedback})
+
+def scorePassword(password):
+    passometer = PasswordChecker()
+    #Update password checker, then display results
+    passometer.update_password(password)
+
+    #Calculates all scores
+    passometer.score_length()
+    passometer.score_characters()
+    passometer.score_rarity()
+    #Calculate final score
+    passometer.combine_scores(4,3,1)
+
+    passometer.rate_password()
+
+    return passometer.get_score(), passometer.generate_feedback('text')
 
 if __name__ == "__main__":
     app.run(debug=True)
