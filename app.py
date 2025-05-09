@@ -1,6 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session as flaskSession
 from flask_caching import Cache
-from flask import session as flaskSession
 import requests
 import uuid
 from skyfield.api import load, Topos, load_constellation_map, Star, load_constellation_names
@@ -26,18 +25,24 @@ engine = create_engine('sqlite:///userdata.db')
 Session = sessionmaker(bind=engine)
 sessionDb = Session()
 
+# Ensure flask session has location and time values
+@app.before_request
+def initialize_session():
+    if 'time' not in flaskSession:
+        flaskSession['time'] = datetime.now()
+    if 'location' not in flaskSession:
+        flaskSession['location'] = None
+
 #Dashboard
 @app.route("/")
 def home():
-    flaskSession['location'] = None
-    flaskSession['time'] = datetime.now()
+
     formatted_time = flaskSession['time'].strftime("%I:%M %p, %A %d %B %Y")
 
     loggedIn = False
     userId = flaskSession.get('userId')
     if userId:
-        loggedIn = True
-
+        loggedIn = True        
     return render_template("index.html", location=flaskSession['location'], time=formatted_time, loggedIn=loggedIn, username=flaskSession.get('username'))
 
 #Signup/login pages
@@ -85,6 +90,8 @@ def sibmitSignup():
         
         flaskSession['userId'] = user.id
         flaskSession['username'] = user.username
+        flaskSession['location'] = None
+        flaskSession['time'] = datetime.now()
         return redirect(url_for('home'))
 
 
@@ -109,6 +116,8 @@ def submitLogin():
         # Set the session variables
         flaskSession['userId'] = user.id
         flaskSession['username'] = user.username
+        flaskSession['location'] = None
+        flaskSession['time'] = datetime.now()
         return redirect(url_for('home'))
     else:
         return render_template("login.html",failed_attempt=True,usernameFailed=username,passwordFailed=password)
@@ -116,7 +125,8 @@ def submitLogin():
 
 @app.route("/logout", methods=["GET"])
 def logout():
-    flaskSession.clear()  # Clear the session data
+    # Clear session data, including time and location
+    flaskSession.clear()
     return redirect(url_for('home'))
 
 
@@ -124,7 +134,18 @@ def logout():
 @app.route("/set-location", methods=["GET"])
 def location_menu():
     return render_template("set_location.html")
-    
+
+@app.route("/set-current-location", methods=["POST"])
+def set_current_location():
+    data = request.json
+    latitude = data.get("latitude")
+    longitude = data.get("longitude")
+
+    if latitude is not None and longitude is not None:
+        flaskSession['location'] = {'latitude': latitude, 'longitude': longitude}
+        return jsonify({"success": True}), 200
+    else:
+        return jsonify({"success": False, "error": "Invalid location data"}), 400
 
 #API call for the next 5 rocket launches
 @app.route("/api/next-launch", methods=["GET"])
@@ -182,10 +203,19 @@ def planets():
 
 #More information about a specific launch
 @app.route("/launch/<launch_id>", methods=["GET"])
-def launch_details(launch_id):
+def launchDetails(launch_id):
     launch, success = get_launch_details(launch_id)
 
     return render_template("launch_details.html", launch=launch, success=success)
+
+
+# Utility route for password strength
+@app.route("/password-strength", methods=["POST"])
+def password_strength():
+    data = request.json
+    password = data.get("password", "")
+    score, feedback = scorePassword(password)
+    return jsonify({"score": score, "feedback": feedback})
 
 def get_launches(quantity:int=5):
     success = False
@@ -193,23 +223,30 @@ def get_launches(quantity:int=5):
     launches = cache.get("launches")
     if launches == None:
         launches = {}
+    launchesFormatted = {}
+
+
     if len(launches) < quantity:
         # Fetch from API if not cached
         try:
             launch_response = requests.get(f"https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit={quantity}")
             if launch_response.ok:
                 launches = launch_response.json()["results"]
-                launches = {launch['id']: launch for launch in launches}
-                cache.set("launches", launches)
+                for launch in launches:
+                    launch['net'] = format_time(launch['net'])  # Format time
+                    launchesFormatted[launch['id']] = launch
+                    
+                cache.set("launches", launchesFormatted)
                 success = True
-        except requests.exceptions.SSLError: #Catch errors due to school network not liking me
+        except requests.exceptions.SSLError:  # Catch errors due to school network not liking me
             success = False
-        
+
     else:
         success = True
+        launchesFormatted = launches
 
-    if launches != None:
-        launches = [launches[launch_id] for launch_id in launches]
+    if launchesFormatted != None:
+        launches = [launchesFormatted[launch_id] for launch_id in launchesFormatted]
     
     return launches, success
 
@@ -226,6 +263,7 @@ def get_launch_details(launch_id:int):
             launch_response = requests.get(f"https://ll.thespacedevs.com/2.3.0/launches/{launch_id}/")
             if launch_response.ok:
                 launch = launch_response.json()
+                launch['net'] = format_time(launch['net'])  # Format as mm:hh dd/mm/yyyy
                 launches[launch['id']] = launch  # Update the cached launches with the new launch details
                 cache.set("launches", launches)
                 success = True
@@ -260,13 +298,21 @@ def get_news(quantity:int=5):
     
     return news, success
 
-# Utility route for password strength
-@app.route("/password-strength", methods=["POST"])
-def password_strength():
-    data = request.json
-    password = data.get("password", "")
-    score, feedback = scorePassword(password)
-    return jsonify({"score": score, "feedback": feedback})
+def format_time(raw_time):
+    launch_time_utc = datetime.fromisoformat(raw_time.replace("Z", "+00:00"))  # Convert to datetime object
+    if flaskSession.get('location'):
+        location = flaskSession['location']
+        launch_time_local = launch_time_utc.astimezone(timezone(location))
+    else:
+        launch_time_local = launch_time_utc.astimezone(timezone.utc)  # Default to UTC
+
+    # Add GMT offset information
+    gmt_offset = launch_time_local.strftime('%z')
+    gmt_offset_formatted = f"GMT{gmt_offset[:3]}:{gmt_offset[3:]}"
+
+    time = launch_time_local.strftime("%H:%M %d/%m/%Y")
+
+    return f"{time} {gmt_offset_formatted}"  # Format as mm:hh dd/mm/yyyy GMT+00:00
 
 def scorePassword(password):
     passometer = PasswordChecker()
